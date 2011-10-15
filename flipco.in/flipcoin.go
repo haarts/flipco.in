@@ -2,7 +2,7 @@ package flipcoin
 
 import (
     "fmt"
-    "appEngine"
+    "appengine"
     "appengine/datastore"
     "http"
     "time"
