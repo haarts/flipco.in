@@ -28,6 +28,9 @@ func init() {
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
+  if len(r.URL.Path) != 1 {
+    http.ServeFile(w, r, "./flipco.in/views" + r.URL.Path)
+  }
   c := appengine.NewContext(r)
   count, err := datastore.NewQuery("Coinflip").Count(c)
   if err != nil {
