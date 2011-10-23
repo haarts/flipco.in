@@ -90,9 +90,14 @@ func show(w http.ResponseWriter, r *http.Request) {
   context  := appengine.NewContext(r)
   key_as_string := strings.Split(r.URL.Path, "/")[2]
   coinflip, _ := find(key_as_string, context)
-  /*coinflip := Coinflip.find(uuid)*/ /* this is conceptually wrong */
+  fmt.Println(coinflip)
   /*registerParticipant(email)*/
-  fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/show.html", map[string]string{"participants":fmt.Sprint(len(coinflip.Participants))}))
+  str_to_str   := map[string]string{"count":fmt.Sprint(len(coinflip.Participants))}
+  str_to_slice := map[string][]map[string]string{"participants":{{"email":"a"},{"email":"b"},{"email":"c"}}}
+  /*str_to_slice := map[string][]string{"participants":[]string{"a","b","c"}}*/
+  fmt.Println(str_to_str)
+  fmt.Println(str_to_slice)
+  fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice))
 }
 
 func find(key_as_string string, context appengine.Context) (*Coinflip, os.Error) {

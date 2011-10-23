@@ -1,6 +1,11 @@
 <html>
   <title></title>
   <body>
-    <p>{{participants}} participants in this coin flip</p>
+    <p>{{count}} participants in this coin flip</p>
+    <ul>
+      {{#participants}}
+      <li>{{email}}</li>
+      {{/participants}}
+    </ul>
   </body>
 </html>
