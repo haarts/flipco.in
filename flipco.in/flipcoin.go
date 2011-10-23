@@ -54,17 +54,20 @@ func create(w http.ResponseWriter, r *http.Request) {
   r.ParseForm()
   tail    := r.Form["tail"][0]
   head    := r.Form["head"][0]
-  friends := r.Form["friends"]
+  friends := r.Form["friends[]"]
 
+  fmt.Println(r.Form["friends[]"])
   /*if tail == "" || head == "" || friends == nil {*/
     /*http.Redirect(w, r, "/", 302)*/
     /*return*/
   /*}*/
 
+  fmt.Println(friends)
   participants := make([]Participant, len(friends))
   for i := range friends {
     participants[i] = Participant{Email: friends[i]}
   }
+  fmt.Println(participants)
 
   coin := Coinflip {
     Head: head,
