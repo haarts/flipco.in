@@ -12,7 +12,7 @@ import (
 )
 
 type Coinflip struct {
-  Participants []Participant
+  Participants []*datastore.Key
   Head         string
   Tail         string
   Done         bool
@@ -56,18 +56,14 @@ func create(w http.ResponseWriter, r *http.Request) {
   head    := r.Form["head"][0]
   friends := r.Form["friends[]"]
 
-  fmt.Println(r.Form["friends[]"])
   /*if tail == "" || head == "" || friends == nil {*/
     /*http.Redirect(w, r, "/", 302)*/
     /*return*/
   /*}*/
-
-  fmt.Println(friends)
-  participants := make([]Participant, len(friends))
-  for i := range friends {
-    participants[i] = Participant{Email: friends[i]}
+  participants, err := storeParticipants(friends, c)
+  if err != nil {
+    http.Error(w, err.String(), http.StatusInternalServerError)
   }
-  fmt.Println(participants)
 
   coin := Coinflip {
     Head: head,
@@ -111,6 +107,19 @@ func find(key_as_string string, context appengine.Context) (*Coinflip, os.Error)
 
 func (p *Coinflip) mailParticipants() {
 
+}
+
+func storeParticipants(emails []string, context appengine.Context) ([]*datastore.Key, os.Error) {
+  participants := make([]*datastore.Key, len(emails))
+  for i := range emails {
+    p := Participant{Email: emails[i]}
+    key, err := datastore.Put(context, datastore.NewIncompleteKey(context, "Participant", nil), &p)
+    if err != nil {
+      return nil, err
+    }
+    participants[i] = key
+  }
+  return participants, nil
 }
 
   /*fmt.Println(r.Form)*/
