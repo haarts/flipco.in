@@ -109,6 +109,7 @@ func (p *Coinflip) mailParticipants() {
 
 }
 
+/*surely passing around Context all the time is ugly as hell*/
 func storeParticipants(emails []string, context appengine.Context) ([]*datastore.Key, os.Error) {
   participants := make([]*datastore.Key, len(emails))
   for i := range emails {
