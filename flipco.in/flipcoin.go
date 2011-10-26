@@ -5,7 +5,7 @@ import (
     "appengine"
     "appengine/datastore"
     "http"
-    /*"time"*/
+    "time"
     "mustache.go"
     "os"
     "strings"
@@ -27,6 +27,7 @@ func init() {
   http.HandleFunc("/", root)
   http.HandleFunc("/show/", show)
   http.HandleFunc("/create", create)
+  http.HandleFunc("/register/", register)
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
@@ -43,10 +44,32 @@ func root(w http.ResponseWriter, r *http.Request) {
   fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/home.html", map[string]string{"title":"Awesome coin tosses - Flipco.in", "nr_of_flips":fmt.Sprint(count)}))
 }
 
+func register(w http.ResponseWriter, r *http.Request) {
+  if r.Method != "GET" {
+    http.Redirect(w, r, "/", 302)
+    return
+  }
+
+  context  := appengine.NewContext(r)
+  key_as_string := strings.Split(r.URL.Path, "/")[2]
+  coinflip, _ := find(key_as_string, context)
+  participants, _ := coinflip.fetchParticipants(context)
+
+  var found *Participant
+  for i := 0; i < len(participants) && found == nil; i++ {
+    if participants[i].Email == r.FormValue("email") {
+      found = &participants[i]
+    }
+  }
+  (*found).Seen = datastore.SecondsToTime(time.Seconds())
+  fmt.Println(*found)
+  /*http.Redirect(w, r, "/show/" + key_as_string, 302)*/
+}
+
 func create(w http.ResponseWriter, r *http.Request) {
   if r.Method != "POST" {
     http.Redirect(w, r, "/", 302)
-    /*return*/
+    return
   }
 
   c := appengine.NewContext(r)
@@ -82,19 +105,11 @@ func create(w http.ResponseWriter, r *http.Request) {
 }
 
 func show(w http.ResponseWriter, r *http.Request) {
-/*, Seen: datastore.SecondsToTime(time.Seconds())*/
   context  := appengine.NewContext(r)
   key_as_string := strings.Split(r.URL.Path, "/")[2]
   coinflip, _ := find(key_as_string, context)
-  fmt.Println(coinflip)
+  participants, _ := coinflip.fetchParticipants(context)
 
-  participants := make([]Participant, len(coinflip.Participants))
-  for i := range participants {
-    if err := datastore.Get(context, coinflip.Participants[i], &participants[i]); err != nil {
-      http.Error(w, err.String(), http.StatusInternalServerError)
-      return
-    }
-  }
   /*registerParticipant(email)*/
   str_to_str   := map[string]string{"count":fmt.Sprint(len(coinflip.Participants))}
   str_to_slice := map[string][]map[string]string{"participants":participantsMap(participants, func(p Participant) map[string]string {
@@ -102,6 +117,16 @@ func show(w http.ResponseWriter, r *http.Request) {
   })}
   /*str_to_slice := map[string][]map[string]string{"participants":{{"email":"a"},{"email":"b"},{"email":"c"}}}*/
   fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice))
+}
+
+func (coinflip Coinflip) fetchParticipants(context appengine.Context) ([]Participant, os.Error) {
+  participants := make([]Participant, len(coinflip.Participants))
+  for i := range participants {
+    if err := datastore.Get(context, coinflip.Participants[i], &participants[i]); err != nil {
+      return nil, err
+    }
+  }
+  return participants, nil
 }
 
 func find(key_as_string string, context appengine.Context) (*Coinflip, os.Error) {
