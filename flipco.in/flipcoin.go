@@ -53,17 +53,18 @@ func register(w http.ResponseWriter, r *http.Request) {
   context  := appengine.NewContext(r)
   key_as_string := strings.Split(r.URL.Path, "/")[2]
   coinflip, _ := find(key_as_string, context)
-  participants, _ := coinflip.fetchParticipants(context)
+  participants, keys, _ := coinflip.fetchParticipants(context)
 
   var found *Participant
-  for i := 0; i < len(participants) && found == nil; i++ {
+  var i int
+  for i = 0; i < len(participants) && found == nil; i++ {
     if participants[i].Email == r.FormValue("email") {
       found = &participants[i]
     }
   }
   (*found).Seen = datastore.SecondsToTime(time.Seconds())
   /* Crap now how do I save it? */
-  fmt.Println(*found)
+  datastore.Put(context, keys[i], found)
   /*http.Redirect(w, r, "/show/" + key_as_string, 302)*/
 }
 
@@ -109,25 +110,25 @@ func show(w http.ResponseWriter, r *http.Request) {
   context  := appengine.NewContext(r)
   key_as_string := strings.Split(r.URL.Path, "/")[2]
   coinflip, _ := find(key_as_string, context)
-  participants, _ := coinflip.fetchParticipants(context)
+  participants, _, _ := coinflip.fetchParticipants(context)
 
   /*registerParticipant(email)*/
   str_to_str   := map[string]string{"count":fmt.Sprint(len(coinflip.Participants))}
   str_to_slice := map[string][]map[string]string{"participants":participantsMap(participants, func(p Participant) map[string]string {
-    return map[string]string{"email":p.Email}
+    return map[string]string{"email":p.Email, "seen_at":p.Seen.Time().Format(time.ANSIC)}
   })}
   /*str_to_slice := map[string][]map[string]string{"participants":{{"email":"a"},{"email":"b"},{"email":"c"}}}*/
-  fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice))
+  fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice)}))
 }
 
-func (coinflip Coinflip) fetchParticipants(context appengine.Context) ([]Participant, os.Error) {
+func (coinflip Coinflip) fetchParticipants(context appengine.Context) ([]Participant, []*datastore.Key, os.Error) {
   participants := make([]Participant, len(coinflip.Participants))
   for i := range participants {
     if err := datastore.Get(context, coinflip.Participants[i], &participants[i]); err != nil {
-      return nil, err
+      return nil, nil, err
     }
   }
-  return participants, nil
+  return participants, coinflip.Participants, nil
 }
 
 func find(key_as_string string, context appengine.Context) (*Coinflip, os.Error) {
