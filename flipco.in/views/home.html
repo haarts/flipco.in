@@ -1,20 +1,14 @@
-<html>
-  <title>{{title}}</title>
-  <body>
-    <form name="cointoss" action="/create" method="POST">
-      <div>
-        <label for="head">Head</label><input name="head" id="head" type="text">
-        <label for="tail">Tail</label><input name="tail" id="tail" type="text">
-      </div>
-      <div>
-        <label for="friend1">Email Friend #1</label><input name="friends[]" id="friend1" type="text" />
-        <label for="friend2">Email Friend #2</label><input name="friends[]" id="friend2" type="text" />
-        <label for="friend3">Email Friend #3</label><input name="friends[]" id="friend3" type="text" />
-        <label for="friend4">Email Friend #4</label><input name="friends[]" id="friend4" type="text" />
-      </div>
-      <input name='submit' type='submit' value='submit' />
-    </form>
-
-    <p>So far {{nr_of_flips}} coins flipped!</p>
-  </body>
-</html>
+<form name="cointoss" action="/create" method="POST">
+  <div>
+    <label for="head">Head</label><input name="head" id="head" type="text">
+    <label for="tail">Tail</label><input name="tail" id="tail" type="text">
+  </div>
+  <div>
+    <label for="friend1">Email Friend #1</label><input name="friends[]" id="friend1" type="text" />
+    <label for="friend2">Email Friend #2</label><input name="friends[]" id="friend2" type="text" />
+    <label for="friend3">Email Friend #3</label><input name="friends[]" id="friend3" type="text" />
+    <label for="friend4">Email Friend #4</label><input name="friends[]" id="friend4" type="text" />
+  </div>
+  <input name='submit' type='submit' value='submit' />
+</form>
+<p>So far {{nr_of_flips}} coins flipped!</p>

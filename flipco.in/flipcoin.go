@@ -24,13 +24,13 @@ type Participant struct {
 }
 
 func init() {
-  http.HandleFunc("/", root)
+  http.HandleFunc("/", home)
   http.HandleFunc("/show/", show)
   http.HandleFunc("/create", create)
   http.HandleFunc("/register/", register)
 }
 
-func root(w http.ResponseWriter, r *http.Request) {
+func home(w http.ResponseWriter, r *http.Request) {
   if len(r.URL.Path) != 1 {
     http.ServeFile(w, r, "./flipco.in/views" + r.URL.Path)
     return
@@ -41,7 +41,7 @@ func root(w http.ResponseWriter, r *http.Request) {
     http.Error(w, err.String(), http.StatusInternalServerError)
     return
   }
-  fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/home.html", map[string]string{"title":"Awesome coin tosses - Flipco.in", "nr_of_flips":fmt.Sprint(count)}))
+  fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/home.html", map[string]string{"title":"Awesome coin tosses - Flipco.in", "nr_of_flips":fmt.Sprint(count)})}))
 }
 
 func register(w http.ResponseWriter, r *http.Request) {
@@ -62,6 +62,7 @@ func register(w http.ResponseWriter, r *http.Request) {
     }
   }
   (*found).Seen = datastore.SecondsToTime(time.Seconds())
+  /* Crap now how do I save it? */
   fmt.Println(*found)
   /*http.Redirect(w, r, "/show/" + key_as_string, 302)*/
 }
