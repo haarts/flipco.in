@@ -4,6 +4,7 @@ import (
     "fmt"
     "appengine"
     "appengine/datastore"
+    "appengine/mail"
     "http"
     "time"
     "mustache.go"
@@ -12,7 +13,7 @@ import (
 )
 
 type Coinflip struct {
-  Participants []*datastore.Key
+  Participants [[]*datastore.Key]*datastore.Key
   Head         string
   Tail         string
   Done         bool
@@ -31,20 +32,26 @@ func init() {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
+  /* static file serve */
   if len(r.URL.Path) != 1 {
     http.ServeFile(w, r, "./flipco.in/views" + r.URL.Path)
     return
   }
+
+  /* the real root */
   c := appengine.NewContext(r)
   count, err := datastore.NewQuery("Coinflip").Count(c)
   if err != nil {
     http.Error(w, err.String(), http.StatusInternalServerError)
     return
   }
+
+  /*long, very long line */
   fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/home.html", map[string]string{"title":"Awesome coin tosses - Flipco.in", "nr_of_flips":fmt.Sprint(count)})}))
 }
 
 func register(w http.ResponseWriter, r *http.Request) {
+  /* not a GET request? redirect to home */
   if r.Method != "GET" {
     http.Redirect(w, r, "/", 302)
     return
@@ -55,6 +62,7 @@ func register(w http.ResponseWriter, r *http.Request) {
   coinflip, _ := find(key_as_string, context)
   participants, keys, _ := coinflip.fetchParticipants(context)
 
+  /* this makes my eyes hurt */
   var found *Participant
   var i int
   for i = 0; i < len(participants) && found == nil; i++ {
@@ -63,12 +71,12 @@ func register(w http.ResponseWriter, r *http.Request) {
     }
   }
   (*found).Seen = datastore.SecondsToTime(time.Seconds())
-  /* Crap now how do I save it? */
-  datastore.Put(context, keys[i], found)
+  datastore.Put(context, keys[i - 1], found)
   /*http.Redirect(w, r, "/show/" + key_as_string, 302)*/
 }
 
 func create(w http.ResponseWriter, r *http.Request) {
+  /* not a POST request? redirect to root */
   if r.Method != "POST" {
     http.Redirect(w, r, "/", 302)
     return
@@ -81,10 +89,11 @@ func create(w http.ResponseWriter, r *http.Request) {
   head    := r.Form["head"][0]
   friends := r.Form["friends[]"]
 
-  /*if tail == "" || head == "" || friends == nil {*/
-    /*http.Redirect(w, r, "/", 302)*/
-    /*return*/
-  /*}*/
+  if tail == "" || head == "" || friends == nil {
+    http.Redirect(w, r, "/", 302)
+    return
+  }
+
   participants, err := storeParticipants(friends, c)
   if err != nil {
     http.Error(w, err.String(), http.StatusInternalServerError)
@@ -96,6 +105,8 @@ func create(w http.ResponseWriter, r *http.Request) {
     Participants: participants,
     Done: false,
   }
+
+  coin.mailParticipants(c)
 
   key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "Coinflip", nil), &coin)
   if err != nil {
@@ -112,15 +123,14 @@ func show(w http.ResponseWriter, r *http.Request) {
   coinflip, _ := find(key_as_string, context)
   participants, _, _ := coinflip.fetchParticipants(context)
 
-  /*registerParticipant(email)*/
   str_to_str   := map[string]string{"count":fmt.Sprint(len(coinflip.Participants))}
   str_to_slice := map[string][]map[string]string{"participants":participantsMap(participants, func(p Participant) map[string]string {
     return map[string]string{"email":p.Email, "seen_at":p.Seen.Time().Format(time.ANSIC)}
   })}
-  /*str_to_slice := map[string][]map[string]string{"participants":{{"email":"a"},{"email":"b"},{"email":"c"}}}*/
   fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice)}))
 }
 
+/* This can't be right */
 func (coinflip Coinflip) fetchParticipants(context appengine.Context) ([]Participant, []*datastore.Key, os.Error) {
   participants := make([]Participant, len(coinflip.Participants))
   for i := range participants {
@@ -131,6 +141,7 @@ func (coinflip Coinflip) fetchParticipants(context appengine.Context) ([]Partici
   return participants, coinflip.Participants, nil
 }
 
+/* passing the Context */
 func find(key_as_string string, context appengine.Context) (*Coinflip, os.Error) {
   coinflip := new(Coinflip)
   key, _ := datastore.DecodeKey(key_as_string)
@@ -147,9 +158,29 @@ func participantsMap(participants []Participant, f func(Participant) map[string]
   return mapped
 }
 
-func (p *Coinflip) mailParticipants() {
-
+/* passing the Context, again */
+/* this is a function on a pointer to a Coinflip struct. Yet either Context OR a slice of Participant must be passed as an argument. */
+func (coinflip *Coinflip) mailParticipants(context appengine.Context) {
+  participants, _, _ := coinflip.fetchParticipants(context)
+  for i := range coinflip.Participants {
+    msg := &mail.Message{
+                  Sender:  "Flipco.in <support@flipco.in>",
+                  To:      []string{participants[i].Email},
+                  Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
+                  Body:    fmt.Sprintf(confirmMessage, "placeholder"),
+          }
+    if err := mail.Send(context, msg); err != nil {
+            context.Errorf("Couldn't send email: %v", err)
+    }
+  }
 }
+
+const confirmMessage = `
+Someone created a coin toss with you.
+Please confirm your email address by clicking on the link below:
+
+%s
+`
 
 /*surely passing around Context all the time is ugly as hell*/
 func storeParticipants(emails []string, context appengine.Context) ([]*datastore.Key, os.Error) {
