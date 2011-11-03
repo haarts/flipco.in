@@ -163,7 +163,7 @@ func (coinflip *Coinflip) mailParticipants(context appengine.Context, key *datas
   participants, _, _ := coinflip.fetchParticipants(context)
   for i := range coinflip.Participants {
     msg := &mail.Message{
-                  Sender:  "harm@flipco.in",
+                  Sender:  "harmaarts@gmail.com",
                   ReplyTo: "harmaarts@gmail.com",
                   To:      []string{participants[i].Email},
                   Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
