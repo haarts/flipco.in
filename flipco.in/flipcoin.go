@@ -106,13 +106,12 @@ func create(w http.ResponseWriter, r *http.Request) {
     Done: false,
   }
 
-  coin.mailParticipants(c)
-
   key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "Coinflip", nil), &coin)
   if err != nil {
     http.Error(w, err.String(), http.StatusInternalServerError)
     return
   }
+  coin.mailParticipants(c, key)
 
   http.Redirect(w, r, "/show/" + key.Encode(), 302)
 }
@@ -129,7 +128,7 @@ func show(w http.ResponseWriter, r *http.Request) {
   })}
   fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice)}))
 }
-
+ 
 /* This can't be right */
 func (coinflip Coinflip) fetchParticipants(context appengine.Context) ([]Participant, []*datastore.Key, os.Error) {
   participants := make([]Participant, len(coinflip.Participants))
@@ -160,14 +159,14 @@ func participantsMap(participants []Participant, f func(Participant) map[string]
 
 /* passing the Context, again */
 /* this is a function on a pointer to a Coinflip struct. Yet either Context OR a slice of Participant must be passed as an argument. */
-func (coinflip *Coinflip) mailParticipants(context appengine.Context) {
+func (coinflip *Coinflip) mailParticipants(context appengine.Context, key *datastore.Key) {
   participants, _, _ := coinflip.fetchParticipants(context)
   for i := range coinflip.Participants {
     msg := &mail.Message{
                   Sender:  "Flipco.in <support@flipco.in>",
                   To:      []string{participants[i].Email},
                   Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
-                  Body:    fmt.Sprintf(confirmMessage, "placeholder"),
+                  Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + key.Encode() + "?email=" + participants[i].Email),
           }
     if err := mail.Send(context, msg); err != nil {
             context.Errorf("Couldn't send email: %v", err)
