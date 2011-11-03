@@ -163,7 +163,8 @@ func (coinflip *Coinflip) mailParticipants(context appengine.Context, key *datas
   participants, _, _ := coinflip.fetchParticipants(context)
   for i := range coinflip.Participants {
     msg := &mail.Message{
-                  Sender:  "Flipco.in <support@flipco.in>",
+                  Sender:  "Harm Aarts - Flipco.in <harm@flipco.in>",
+                  ReplyTo: "harmaarts@gmail.com"
                   To:      []string{participants[i].Email},
                   Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
                   Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + key.Encode() + "?email=" + participants[i].Email),
