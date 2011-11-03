@@ -13,7 +13,7 @@ import (
 )
 
 type Coinflip struct {
-  Participants [[]*datastore.Key]*datastore.Key
+  Participants []*datastore.Key
   Head         string
   Tail         string
   Done         bool
