@@ -61,9 +61,14 @@ func register(w http.ResponseWriter, r *http.Request) {
 
   iterator := datastore.NewQuery("Participant").Ancestor(coinflipKey).Filter("Email =", r.FormValue("email")).Run(context)
   var found Participant
-  key, _ := iterator.Next(found)
+  key, err := iterator.Next(&found)
+  if err != nil {
+    http.Error(w, err.String(), http.StatusInternalServerError)
+    return
+  }
   found.Seen = datastore.SecondsToTime(time.Seconds())
-  datastore.Put(context, key, found)
+  datastore.Put(context, key, &found)
+  /*http.Redirect(w, r, "/show/" + coinflipKey.Encode(), 302)*/
 }
 
 func create(w http.ResponseWriter, r *http.Request) {
