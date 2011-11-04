@@ -6,5 +6,8 @@ Flip a coin of course!
 With Flipco.in you can enter the email addresses of you friends. A coin is
 flipped and every one gets the same result in their inbox.
 
+## Go and Google App Engine
+This application is designed to run on GAE and is the first Go program I wrote.
+
 ## Install gotcha's
 This project depends on the [Mustach.go](https://github.com/hoisie/mustache.go) project. Symlink the project root in the project root as mustache.go.
