@@ -85,7 +85,9 @@ func create(w http.ResponseWriter, r *http.Request) {
   head    := r.Form["head"][0]
   friends := r.Form["friends[]"]
 
-  if tail == "" || head == "" || friends == nil {
+  uniq_friends := uniq(friends)
+
+  if tail == "" || head == "" || uniq_friends == nil {
     http.Redirect(w, r, "/", 302)
     return
   }
@@ -102,11 +104,12 @@ func create(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  for i := range friends {
+  for i := range uniq_friends {
     key := datastore.NewIncompleteKey(c, "Participant", coinflipKey)
-    participant := Participant{Email:friends[i]}
+    participant := Participant{Email:uniq_friends[i]}
     datastore.Put(c, key, &participant)
   }
+  
   coin.mailParticipants(c, coinflipKey)
 
   http.Redirect(w, r, "/show/" + coinflipKey.Encode(), 302)
@@ -125,6 +128,20 @@ func show(w http.ResponseWriter, r *http.Request) {
   str_to_str   := map[string]string{"count":fmt.Sprint(len(email_list)),"head":coinflip.Head, "tail":coinflip.Tail}
   str_to_slice := map[string][]map[string]string{"participants":email_list}
   fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice)}))
+}
+
+func uniq(friends []string) (uniq_friends []string) {
+  for i := range friends {
+    if friends[i] != "" {
+      for j := i+1; j < len(friends); j++ {
+        if friends[j] == friends[i] {
+          friends[j] = ""
+        }
+      }
+      uniq_friends = append(uniq_friends, friends[i])
+    }
+  }
+  return
 }
 
 func find(key *datastore.Key, context appengine.Context) (*Coinflip, os.Error) {
