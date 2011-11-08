@@ -4,7 +4,7 @@ import (
     "fmt"
     "appengine"
     "appengine/datastore"
-    /*"appengine/mail"*/
+    "appengine/mail"
     "http"
     "time"
     "mustache.go"
@@ -107,7 +107,7 @@ func create(w http.ResponseWriter, r *http.Request) {
     participant := Participant{Email:friends[i]}
     datastore.Put(c, key, &participant)
   }
-  /*coin.mailParticipants(c, coinflipKey)*/
+  coin.mailParticipants(c, coinflipKey)
 
   http.Redirect(w, r, "/show/" + coinflipKey.Encode(), 302)
 }
@@ -122,7 +122,6 @@ func show(w http.ResponseWriter, r *http.Request) {
   email_list := participantsMap(iterator, func(p Participant) map[string]string {
     return map[string]string{"email":p.Email, "seen_at":p.Seen.Time().Format(time.ANSIC)}
   })
-  fmt.Println(email_list)
   str_to_str   := map[string]string{"count":fmt.Sprint(len(email_list)),"head":coinflip.Head, "tail":coinflip.Tail}
   str_to_slice := map[string][]map[string]string{"participants":email_list}
   fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice)}))
@@ -152,20 +151,27 @@ func participantsMap(iterator *datastore.Iterator, f func(Participant) map[strin
 
 /* passing the Context, again */
 /* this is a function on a pointer to a Coinflip struct. Yet either Context OR a slice of Participant must be passed as an argument. */
-func (coinflip *Coinflip) mailParticipants(context appengine.Context, key *datastore.Key) {
-  /*participants, _, _ := coinflip.fetchParticipants(context)*/
-  /*for i := range coinflip.Participants {*/
-    /*msg := &mail.Message{*/
-                  /*Sender:  "harmaarts@gmail.com",*/
-                  /*ReplyTo: "harmaarts@gmail.com",*/
-                  /*To:      []string{participants[i].Email},*/
-                  /*Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",*/
-                  /*Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + key.Encode() + "?email=" + participants[i].Email),*/
-          /*}*/
-    /*if err := mail.Send(context, msg); err != nil {*/
-            /*context.Errorf("Couldn't send email: %v", err)*/
-    /*}*/
-  /*}*/
+func (coinflip *Coinflip) mailParticipants(context appengine.Context, coinflipKey *datastore.Key) {
+  query := datastore.NewQuery("Participant").Ancestor(coinflipKey)
+
+  for t := query.Run(context) ; ; {
+    var participant Participant
+    _, err := t.Next(&participant)
+    if err == datastore.Done {
+      break
+    }
+
+    msg := &mail.Message{
+                  Sender:  "harm@flipco.in",
+                  ReplyTo: "harm@flipco.in",
+                  To:      []string{participant.Email},
+                  Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
+                  Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + coinflipKey.Encode() + "?email=" + participant.Email),
+          }
+    if err := mail.Send(context, msg); err != nil {
+            context.Errorf("Couldn't send email: %v", err)
+    }
+  }
 }
 
 const confirmMessage = `
