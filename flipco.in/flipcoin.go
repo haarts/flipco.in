@@ -162,8 +162,8 @@ func (coinflip *Coinflip) mailParticipants(context appengine.Context, coinflipKe
     }
 
     msg := &mail.Message{
-                  Sender:  "harm@flipco.in",
-                  ReplyTo: "harm@flipco.in",
+                  Sender:  "harmaarts@gmail.com",
+                  ReplyTo: "harmaarts@gmail.com",
                   To:      []string{participant.Email},
                   Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
                   Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + coinflipKey.Encode() + "?email=" + participant.Email),
