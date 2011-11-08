@@ -10,12 +10,13 @@ import (
     "mustache.go"
     "os"
     "strings"
+    "io/ioutil"
 )
 
 type Coinflip struct {
   Head         string
   Tail         string
-  Done         bool
+  Result       string
 }
 
 type Participant struct {
@@ -58,6 +59,13 @@ func register(w http.ResponseWriter, r *http.Request) {
 
   context        := appengine.NewContext(r)
   coinflipKey, _ := datastore.DecodeKey(strings.Split(r.URL.Path, "/")[2])
+  coinflip, _ := find(coinflipKey, context)
+
+  if coinflip.Result != "" {
+    http.Redirect(w, r, "/show/" + coinflipKey.Encode(), 302)
+    return
+  }
+
 
   iterator := datastore.NewQuery("Participant").Ancestor(coinflipKey).Filter("Email =", r.FormValue("email")).Run(context)
   var found Participant
@@ -68,6 +76,16 @@ func register(w http.ResponseWriter, r *http.Request) {
   }
   found.Seen = datastore.SecondsToTime(time.Seconds())
   datastore.Put(context, key, &found)
+  count, err := datastore.NewQuery("Participant").Ancestor(coinflipKey).Filter("Seen =", 0).Count(context)
+  if err != nil {
+    http.Error(w, err.String(), http.StatusInternalServerError)
+    return
+  }
+  if count == 0 {
+    result := coinflip.mailResultToParticipants(context, coinflipKey)
+    coinflip.Result = result
+    datastore.Put(context, coinflipKey, coinflip)
+  }
   http.Redirect(w, r, "/show/" + coinflipKey.Encode(), 302)
 }
 
@@ -95,7 +113,6 @@ func create(w http.ResponseWriter, r *http.Request) {
   coin := Coinflip {
     Head: head,
     Tail: tail,
-    Done: false,
   }
 
   coinflipKey, err := datastore.Put(c, datastore.NewIncompleteKey(c, "Coinflip", nil), &coin)
@@ -109,7 +126,7 @@ func create(w http.ResponseWriter, r *http.Request) {
     participant := Participant{Email:uniq_friends[i]}
     datastore.Put(c, key, &participant)
   }
-  
+
   coin.mailParticipants(c, coinflipKey)
 
   http.Redirect(w, r, "/show/" + coinflipKey.Encode(), 302)
@@ -125,7 +142,7 @@ func show(w http.ResponseWriter, r *http.Request) {
   email_list := participantsMap(iterator, func(p Participant) map[string]string {
     return map[string]string{"email":p.Email, "seen_at":p.Seen.Time().Format(time.ANSIC)}
   })
-  str_to_str   := map[string]string{"count":fmt.Sprint(len(email_list)),"head":coinflip.Head, "tail":coinflip.Tail}
+  str_to_str   := map[string]string{"count":fmt.Sprint(len(email_list)),"head":coinflip.Head, "tail":coinflip.Tail, "result":coinflip.Result}
   str_to_slice := map[string][]map[string]string{"participants":email_list}
   fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice)}))
 }
@@ -198,6 +215,64 @@ Please confirm your email address by clicking on the link below:
 %s
 `
 
+func (coinflip *Coinflip) getResult() string {
+  response, err := http.Get("http://www.random.org/integers/?num=1&min=0&max=1&col=1&base=10&format=plain&rnd=new")
+  if err != nil {
+    fmt.Printf("%s", err)
+  } else {
+    defer response.Body.Close()
+    contents, err := ioutil.ReadAll(response.Body)
+    if err != nil {
+      fmt.Printf("%s", err)
+    }
+    strContents := strings.Trim(string(contents), " \n")
+    if strContents == "0" {
+      return coinflip.Head
+    } else if strContents == "1" {
+      return coinflip.Tail
+    } else {
+      return "weirdness"
+    }
+  }
+  return "never happens"
+}
+
+func (coinflip *Coinflip) mailResultToParticipants(context appengine.Context, coinflipKey *datastore.Key) string {
+
+  result := coinflip.getResult()
+  query := datastore.NewQuery("Participant").Ancestor(coinflipKey)
+
+  for t := query.Run(context) ; ; {
+    var participant Participant
+    _, err := t.Next(&participant)
+    if err == datastore.Done {
+      break
+    }
+
+    msg := &mail.Message{
+                  Sender:  "harm@flipco.in",
+                  ReplyTo: "harm@flipco.in",
+                  To:      []string{participant.Email},
+                  Subject: "The results are in!",
+                  Body:    fmt.Sprintf(resultMessage, result),
+          }
+    if err := mail.Send(context, msg); err != nil {
+            context.Errorf("Couldn't send email: %v", err)
+    }
+  }
+  return result
+}
+const resultMessage = `
+Brilliant! Everybody checked in.
+The result of your coin flip is:
+
+%s
+
+Remember this results is based on absolute randomness.
+
+Thanks for using Flipco.in!
+
+`
 /*surely passing around Context all the time is ugly as hell*/
 func storeParticipants(emails []string, context appengine.Context) ([]*datastore.Key, os.Error) {
   participants := make([]*datastore.Key, len(emails))
