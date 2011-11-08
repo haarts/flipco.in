@@ -68,7 +68,7 @@ func register(w http.ResponseWriter, r *http.Request) {
   }
   found.Seen = datastore.SecondsToTime(time.Seconds())
   datastore.Put(context, key, &found)
-  /*http.Redirect(w, r, "/show/" + coinflipKey.Encode(), 302)*/
+  http.Redirect(w, r, "/show/" + coinflipKey.Encode(), 302)
 }
 
 func create(w http.ResponseWriter, r *http.Request) {
@@ -162,8 +162,8 @@ func (coinflip *Coinflip) mailParticipants(context appengine.Context, coinflipKe
     }
 
     msg := &mail.Message{
-                  Sender:  "harmaarts@gmail.com",
-                  ReplyTo: "harmaarts@gmail.com",
+                  Sender:  "harm@flipco.in",
+                  ReplyTo: "harm@flipco.in",
                   To:      []string{participant.Email},
                   Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
                   Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + coinflipKey.Encode() + "?email=" + participant.Email),
