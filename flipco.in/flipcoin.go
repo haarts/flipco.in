@@ -215,10 +215,10 @@ Please confirm your email address by clicking on the link below:
 %s
 `
 
-func (coinflip *Coinflip) getResult() string {
+func (coinflip *Coinflip) getResult(context appengine.Context) string {
   response, err := http.Get("http://www.random.org/integers/?num=1&min=0&max=1&col=1&base=10&format=plain&rnd=new")
   if err != nil {
-    fmt.Printf("%s", err)
+    context.Errorf("Couldn't fetch Random.org: %v", err)
   } else {
     defer response.Body.Close()
     contents, err := ioutil.ReadAll(response.Body)
