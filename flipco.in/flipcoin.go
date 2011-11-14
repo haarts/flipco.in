@@ -239,7 +239,7 @@ func (coinflip *Coinflip) getResult(context appengine.Context) string {
 
 func (coinflip *Coinflip) mailResultToParticipants(context appengine.Context, coinflipKey *datastore.Key) string {
 
-  result := coinflip.getResult()
+  result := coinflip.getResult(context)
   query := datastore.NewQuery("Participant").Ancestor(coinflipKey)
 
   for t := query.Run(context) ; ; {
