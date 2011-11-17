@@ -5,6 +5,7 @@ import (
     "appengine"
     "appengine/datastore"
     "appengine/mail"
+    "appengine/urlfetch"
     "http"
     "time"
     "mustache.go"
@@ -202,6 +203,7 @@ func (coinflip *Coinflip) mailParticipants(context appengine.Context, coinflipKe
                   Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
                   Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + coinflipKey.Encode() + "?email=" + participant.Email),
           }
+    context.Debugf("Mail object %v", msg);
     if err := mail.Send(context, msg); err != nil {
             context.Errorf("Couldn't send email: %v", err)
     }
@@ -216,7 +218,8 @@ Please confirm your email address by clicking on the link below:
 `
 
 func (coinflip *Coinflip) getResult(context appengine.Context) string {
-  response, err := http.Get("http://www.random.org/integers/?num=1&min=0&max=1&col=1&base=10&format=plain&rnd=new")
+  client := urlfetch.Client(context)
+  response, err := client.Get("http://www.random.org/integers/?num=1&min=0&max=1&col=1&base=10&format=plain&rnd=new")
   if err != nil {
     context.Errorf("Couldn't fetch Random.org: %v", err)
   } else {
