@@ -197,13 +197,12 @@ func (coinflip *Coinflip) mailParticipants(context appengine.Context, coinflipKe
     }
 
     msg := &mail.Message{
-                  Sender:  "harm@flipco.in",
-                  ReplyTo: "harm@flipco.in",
+                  Sender:  "harmaarts@gmail.com",
                   To:      []string{participant.Email},
                   Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
                   Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + coinflipKey.Encode() + "?email=" + participant.Email),
           }
-    context.Debugf("Mail object %v", msg);
+    context.Errorf("Mail object %v", msg);
     if err := mail.Send(context, msg); err != nil {
             context.Errorf("Couldn't send email: %v", err)
     }
