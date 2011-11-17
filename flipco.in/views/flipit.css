@@ -1,0 +1,31 @@
+body { font-family: "Helvetica Neue", sans-serif; font-size: 20px; background-color: #333; margin: 0; padding: 0; }
+
+#wrapper { width: 608px; margin: 0 auto; background-color: #f1f1f1; }
+p { padding: 0 1em; }
+
+h1 { font-size: 34px; color: gold; background-color: #333; padding: 0.1em 0 0.25em; margin-bottom: 0;   }
+
+.toggle { margin-left: 0.25em; cursor: pointer; font-family: "Monaco", monospace; font-size: 20px; height: 16px; line-height: 10px; display: block; float: left; padding: 14px 0; }
+.add { color: green; }
+.del { color: red; }
+
+form { padding: 1em; }
+
+input { height: 44px; border: 1px solid #c5c5c5; border-radius: 44px; font-size: 20px; padding: 0 1em; }
+input[type=submit] { }
+
+#options { list-style: none; padding: 0; overflow: hidden; }
+#options li { float: left; width: 300px; }
+#options label { display: block; float: left; width: 60px; height: 44px; padding: 0; border: 1px solid #f1f1f1; line-height: 44px; font-weight: bold; }
+#options input { width: 180px; }
+
+#friends { list-style: none; padding: 0; margin: 0; clear: both; overflow: hidden; }
+#friends li { display: block; clear: both; margin: 0 0 1em; overflow: hidden; }
+#friends input[type=email] { float: left; }
+#friends label { display: block; float: left; width: 150px; height: 44px; padding: 0; border: 1px solid #f1f1f1; line-height: 44px; }
+
+fieldset { padding: 1em; margin: 0 0 1em; border: 1px solid #d5d5d5; }
+legend { margin: 0; font-size: 16px; font-weight: bold; }
+
+.status { text-align: center; padding: 0 0 1em; font-style: italic; }
+
