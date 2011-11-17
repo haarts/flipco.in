@@ -159,7 +159,10 @@ func uniq(friends []string) (uniq_friends []string) {
       uniq_friends = append(uniq_friends, friends[i])
     }
   }
-  return
+  if len(uniq_friends) > 10 {
+    uniq_friends = uniq_friends[0:10]
+  }
+  return uniq_friends
 }
 
 func find(key *datastore.Key, context appengine.Context) (*Coinflip, os.Error) {
