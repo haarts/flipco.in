@@ -1,8 +1,18 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>{{title}}</title>
-    <script type="text/javascript">
+    <head>
+        <title>{{title}}</title>
+        <link rel="stylesheet" href="/flipit.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+        <script src="/app.js"></script>
+    </head>
+    <body>
+        <div id="wrapper">
+        <h1><blink>Flipco.in</blink></h1>
+            {{{body}}}
+        </div>
 
+    <script type="text/javascript">
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-26662449-1']);
       _gaq.push(['_trackPageview']);
@@ -12,10 +22,6 @@
         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
-
     </script>
-  </head>
-  <body>
-    {{{body}}}
-  </body>
+    </body>
 </html>
