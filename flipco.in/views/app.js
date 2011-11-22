@@ -1,13 +1,18 @@
 $(document).ready(function(){
    // Remove last three elements
    $('#friends').children().each(function(key, element){
-       if(key > 0) {
+     if(key == 0) {
+        $(this).append('<span class="toggle del">x</span>');
+     }
+     if(key == 1) {
+       // Add the plus sign at the end of the first element
+        $(this).append('<span class="toggle add">+</span>');
+     }
+       if(key > 1) {
            $(this).remove();
        }
    })
 
-   // Add the plus sign at the end of the first element
-   $('#friends li').append('<span class="toggle add">+</span>');
 
    // Add inputs if needed
    var inputs = 1;
