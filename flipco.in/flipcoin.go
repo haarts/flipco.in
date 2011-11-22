@@ -14,6 +14,10 @@ import (
     "io/ioutil"
 )
 
+const (
+  senderEmail = "harmaarts@gmail.com"
+)
+
 type Coinflip struct {
   Head         string
   Tail         string
@@ -201,7 +205,7 @@ func (coinflip *Coinflip) mailParticipants(context appengine.Context, coinflipKe
     }
 
     msg := &mail.Message{
-                  Sender:  "harmaarts@gmail.com",
+                  Sender:  senderEmail,
                   To:      []string{participant.Email},
                   Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
                   Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + coinflipKey.Encode() + "?email=" + participant.Email),
@@ -255,7 +259,7 @@ func (coinflip *Coinflip) mailResultToParticipants(context appengine.Context, co
     }
 
     msg := &mail.Message{
-                  Sender:  "harmaarts@gmail.com",
+                  Sender:  senderEmail,
                   To:      []string{participant.Email},
                   Subject: "The results are in!",
                   Body:    fmt.Sprintf(resultMessage, result),
