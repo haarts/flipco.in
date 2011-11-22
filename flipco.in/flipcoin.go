@@ -146,7 +146,12 @@ func show(w http.ResponseWriter, r *http.Request) {
 
   email_list := participantsMap(iterator, func(p Participant) map[string]string {
     seen_at := p.Seen.Time()
-    return map[string]string{"email":p.Email, "seen_at":seen_at.Format("Monday 2 January 2006")}
+    if seen_at == nil {
+      seen_at = "This email address hasn't registered yet"
+    } else {
+      seen_at = seen_at.Format("Monday 2 January 2006")
+    }
+    return map[string]string{"email":p.Email, "seen_at":seen_at}
   })
   str_to_str   := map[string]string{"count":fmt.Sprint(len(email_list)),"head":coinflip.Head, "tail":coinflip.Tail, "result":coinflip.Result}
   str_to_slice := map[string][]map[string]string{"participants":email_list}
