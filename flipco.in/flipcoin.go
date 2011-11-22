@@ -141,7 +141,9 @@ func show(w http.ResponseWriter, r *http.Request) {
   iterator := datastore.NewQuery("Participant").Ancestor(coinflipKey).Run(context)
 
   email_list := participantsMap(iterator, func(p Participant) map[string]string {
-    return map[string]string{"email":p.Email, "seen_at":p.Seen.Time().Format(time.ANSIC)}
+    seen_at := p.Seen.Time()
+    fmt.Println(time.Thursday)
+    return map[string]string{"email":p.Email, "seen_at":fmt.Sprintf("%d-%d-%d", seen_at.Day, seen_at.Month, seen_at.Year)}
   })
   str_to_str   := map[string]string{"count":fmt.Sprint(len(email_list)),"head":coinflip.Head, "tail":coinflip.Tail, "result":coinflip.Result}
   str_to_slice := map[string][]map[string]string{"participants":email_list}
@@ -205,7 +207,6 @@ func (coinflip *Coinflip) mailParticipants(context appengine.Context, coinflipKe
                   Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
                   Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/" + coinflipKey.Encode() + "?email=" + participant.Email),
           }
-    context.Errorf("Mail object %v", msg);
     if err := mail.Send(context, msg); err != nil {
             context.Errorf("Couldn't send email: %v", err)
     }
