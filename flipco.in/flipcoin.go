@@ -15,7 +15,7 @@ import (
 )
 
 const (
-  senderEmail = "harmaarts@gmail.com"
+  senderEmail = "Flipco.in <harmaarts@gmail.com>"
 )
 
 type Coinflip struct {
