@@ -153,7 +153,13 @@ func show(w http.ResponseWriter, r *http.Request) {
     }
     return map[string]string{"email":p.Email, "seen_at":seen_at}
   })
-  str_to_str   := map[string]string{"count":fmt.Sprint(len(email_list)),"head":coinflip.Head, "tail":coinflip.Tail, "result":coinflip.Result}
+  var result string
+  if coinflip.Result == "" {
+    result = "Nothing yet! Not everybody checked in. Perhaps a little encouragement?"
+  } else {
+    result = coinflip.Result
+  }
+  str_to_str   := map[string]string{"count":fmt.Sprint(len(email_list)),"head":coinflip.Head, "tail":coinflip.Tail, "result":result}
   str_to_slice := map[string][]map[string]string{"participants":email_list}
   fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/show.html", str_to_str, str_to_slice)}))
 }
