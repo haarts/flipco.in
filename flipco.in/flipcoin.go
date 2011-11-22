@@ -255,8 +255,7 @@ func (coinflip *Coinflip) mailResultToParticipants(context appengine.Context, co
     }
 
     msg := &mail.Message{
-                  Sender:  "harm@flipco.in",
-                  ReplyTo: "harm@flipco.in",
+                  Sender:  "harmaarts@gmail.com",
                   To:      []string{participant.Email},
                   Subject: "The results are in!",
                   Body:    fmt.Sprintf(resultMessage, result),
