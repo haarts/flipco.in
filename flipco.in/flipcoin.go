@@ -145,11 +145,11 @@ func show(w http.ResponseWriter, r *http.Request) {
   iterator := datastore.NewQuery("Participant").Ancestor(coinflipKey).Run(context)
 
   email_list := participantsMap(iterator, func(p Participant) map[string]string {
-    seen_at := p.Seen.Time()
-    if seen_at == nil {
-      seen_at = "This email address hasn't registered yet"
+    var seen_at string
+    if p.Seen == 0 {
+      seen_at = "hasn't registered yet"
     } else {
-      seen_at = seen_at.Format("Monday 2 January 2006")
+      seen_at = p.Seen.Time().Format("Monday 2 January 2006")
     }
     return map[string]string{"email":p.Email, "seen_at":seen_at}
   })
