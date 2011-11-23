@@ -34,6 +34,16 @@ func init() {
   http.HandleFunc("/show/", show)
   http.HandleFunc("/create", create)
   http.HandleFunc("/register/", register)
+  http.HandleFunc("/why", why)
+  http.HandleFunc("/about", about)
+}
+
+func why(w http.ResponseWriter, r *http.Request) {
+  fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/why.html", map[string]string{"title":"Why coin tosses? - Flipco.in"})}))
+}
+
+func about(w http.ResponseWriter, r *http.Request) {
+  fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body":mustache.RenderFile("./flipco.in/views/about.html", map[string]string{"title":"About coin flips - Flipco.in"})}))
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
