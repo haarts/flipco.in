@@ -8,7 +8,7 @@ import (
     "appengine/urlfetch"
     "http"
     "time"
-    "mustache.go"
+	mustache "https://github.com/hoisie/mustache"
     "os"
     "strings"
     "io/ioutil"
