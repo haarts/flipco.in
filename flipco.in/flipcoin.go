@@ -7,9 +7,8 @@ import (
 	"appengine/urlfetch"
 	"fmt"
 	mustache "github.com/hoisie/mustache"
-	"http"
 	"io/ioutil"
-	"os"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -57,7 +56,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	count, err := datastore.NewQuery("Coinflip").Count(c)
 	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -85,14 +84,14 @@ func register(w http.ResponseWriter, r *http.Request) {
 	var found Participant
 	key, err := iterator.Next(&found)
 	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	found.Seen = datastore.SecondsToTime(time.Seconds())
+	found.Seen = datastore.SecondsToTime(time.Now())
 	datastore.Put(context, key, &found)
 	count, err := datastore.NewQuery("Participant").Ancestor(coinflipKey).Filter("Seen =", 0).Count(context)
 	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if count == 0 {
@@ -131,7 +130,7 @@ func create(w http.ResponseWriter, r *http.Request) {
 
 	coinflipKey, err := datastore.Put(c, datastore.NewIncompleteKey(c, "Coinflip", nil), &coin)
 	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -190,7 +189,7 @@ func uniq(friends []string) (uniq_friends []string) {
 	return uniq_friends
 }
 
-func find(key *datastore.Key, context appengine.Context) (*Coinflip, os.Error) {
+func find(key *datastore.Key, context appengine.Context) (*Coinflip, error) {
 	coinflip := new(Coinflip)
 	if err := datastore.Get(context, key, coinflip); err != nil {
 		return nil, err
@@ -304,7 +303,7 @@ Thanks for using Flipco.in!
 `
 
 /*surely passing around Context all the time is ugly as hell*/
-func storeParticipants(emails []string, context appengine.Context) ([]*datastore.Key, os.Error) {
+func storeParticipants(emails []string, context appengine.Context) ([]*datastore.Key, error) {
 	participants := make([]*datastore.Key, len(emails))
 	for i := range emails {
 		p := Participant{Email: emails[i]}
