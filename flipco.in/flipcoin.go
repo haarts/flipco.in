@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	senderEmail = "Flipco.in <harmaarts@gmail.com>"
+	senderEmail = "Coinflips.net <harmaarts@gmail.com>"
 )
 
 type Coinflip struct {
@@ -38,11 +38,11 @@ func init() {
 }
 
 func why(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body": mustache.RenderFile("./flipco.in/views/why.html", map[string]string{"title": "Why coin tosses? - Flipco.in"})}))
+	fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body": mustache.RenderFile("./flipco.in/views/why.html", map[string]string{"title": "Why coin tosses? - Coinflips.net"})}))
 }
 
 func about(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body": mustache.RenderFile("./flipco.in/views/about.html", map[string]string{"title": "About coin flips - Flipco.in"})}))
+	fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body": mustache.RenderFile("./flipco.in/views/about.html", map[string]string{"title": "About coin flips - Coinflips.net"})}))
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +61,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	/*long, very long line */
-	fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body": mustache.RenderFile("./flipco.in/views/home.html", map[string]string{"title": "Awesome coin tosses - Flipco.in", "nr_of_flips": fmt.Sprint(count)})}))
+	fmt.Fprint(w, mustache.RenderFile("./flipco.in/views/layout.html", map[string]string{"body": mustache.RenderFile("./flipco.in/views/home.html", map[string]string{"title": "Awesome coin tosses - Coinflips.net", "nr_of_flips": fmt.Sprint(count)})}))
 }
 
 func register(w http.ResponseWriter, r *http.Request) {
@@ -228,7 +228,7 @@ func (coinflip *Coinflip) mailParticipants(context appengine.Context, coinflipKe
 			Sender:  senderEmail,
 			To:      []string{participant.Email},
 			Subject: "What will it be? " + coinflip.Head + " or " + coinflip.Tail + "?",
-			Body:    fmt.Sprintf(confirmMessage, "http://www.flipco.in/register/"+coinflipKey.Encode()+"?email="+participant.Email),
+			Body:    fmt.Sprintf(confirmMessage, "http://www.coinflips.net/register/"+coinflipKey.Encode()+"?email="+participant.Email),
 		}
 		if err := mail.Send(context, msg); err != nil {
 			context.Errorf("Couldn't send email: %v", err)
@@ -299,7 +299,7 @@ The result of your coin flip is:
 
 Remember this results is based on absolute randomness.
 
-Thanks for using Flipco.in!
+Thanks for using Coinflips.net!
 
 `
 
