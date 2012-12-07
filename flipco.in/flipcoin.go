@@ -25,7 +25,7 @@ type Coinflip struct {
 
 type Participant struct {
 	Email string
-	Seen  datastore.Time
+	Seen  time.Time
 }
 
 func init() {
@@ -87,7 +87,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	found.Seen = datastore.SecondsToTime(time.Now())
+	found.Seen = time.Now()
+	/*found.Seen = datastore.SecondsToTime(time.Now())*/
 	datastore.Put(context, key, &found)
 	count, err := datastore.NewQuery("Participant").Ancestor(coinflipKey).Filter("Seen =", 0).Count(context)
 	if err != nil {
@@ -154,10 +155,10 @@ func show(w http.ResponseWriter, r *http.Request) {
 
 	email_list := participantsMap(iterator, func(p Participant) map[string]string {
 		var seen_at string
-		if p.Seen == 0 {
+		if p.Seen.IsZero() {
 			seen_at = "hasn't registered yet"
 		} else {
-			seen_at = p.Seen.Time().Format("Monday 2 January 2006")
+			seen_at = p.Seen.Format("Monday 2 January 2006")
 		}
 		return map[string]string{"email": p.Email, "seen_at": seen_at}
 	})
